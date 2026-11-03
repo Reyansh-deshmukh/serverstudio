@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Server Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{color-scheme:dark;--bg:#0b0d10;--sf:#12151a;--sf2:#181c22;--bd:#242932;--tx:#e8eaed;--mu:#8b93a1;--ac:#2fd27a;--acf:#06150d;--r:10px;box-sizing:border-box}
+:root[data-theme=light]{color-scheme:light;--bg:#f5f6f8;--sf:#fff;--sf2:#f0f2f5;--bd:#e0e3e8;--tx:#14171c;--mu:#626b7a}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--tx);font:14px/1.55 'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+h2{font-size:22px;font-weight:650;margin:0 0 4px;letter-spacing:-.01em}h3{font-size:14px;font-weight:600;margin:0}h4{margin:12px 0 4px;font-size:14px}
+.hide{display:none!important}
+.sub{color:var(--mu);margin:0 0 22px}
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.lc{width:100%;max-width:380px}.lc .brand{margin-bottom:22px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:16px}.brand svg{width:26px;height:26px;color:var(--ac)}
+.linkbtn{all:unset;color:var(--mu);cursor:pointer;margin-top:14px;display:block;text-align:center;font-size:13px}.linkbtn:hover{color:var(--tx)}
+#app{display:flex;min-height:100vh}
+#sb{width:236px;flex:none;background:var(--sf);border-right:1px solid var(--bd);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;padding:16px 12px;overflow:auto;z-index:20}
+#sb .brand{padding:4px 8px 16px}
+.ng{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mu);margin:16px 8px 6px}
+.nv{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--mu);font-weight:500}
+.nv svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nv:hover{background:var(--sf2);color:var(--tx)}.nv.on{background:var(--sf2);color:var(--tx);box-shadow:inset 2px 0 var(--ac)}
+#main{flex:1;min-width:0}
+#tb{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:10px 28px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--bd)}
+#tb .sp{flex:1}#pt{font-weight:600}
+.sbtn{display:flex;align-items:center;gap:10px;background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;color:var(--mu);cursor:pointer;min-width:200px}
+.sbtn kbd{margin-left:auto;font:11px monospace;border:1px solid var(--bd);border-radius:4px;padding:0 5px}
+#mb{display:none}
+#who{display:flex;align-items:center;font-weight:500}
+.view{display:none;padding:28px;max-width:1180px;margin:0 auto}.view.on{display:block;animation:in .25s both}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.pnl{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:18px}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px}
+.two{display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start}
+.dg{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;align-items:start}.col{display:grid;gap:16px}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
+label{display:block;margin:12px 0 5px;color:var(--mu);font-size:12.5px;font-weight:500}
+input[type=text],input[type=password],input[type=number],select,textarea{width:100%;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:9px 11px;font:inherit;outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 22%,transparent)}
+textarea{min-height:88px;resize:vertical}
+input[type=file]{font-size:12px;color:var(--mu)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:8px 13px;cursor:pointer;font-weight:500;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--mu)}.btn:active{transform:translateY(1px)}
+.btn.g{background:var(--ac);border-color:var(--ac);color:var(--acf);font-weight:600}.btn.g:hover{filter:brightness(1.08)}
+.btn.w{width:100%;margin-top:14px}.btn.s{padding:5px 10px;font-size:12px}
+.err{color:#f0616d;min-height:18px;margin-top:8px;font-size:12.5px}
+.row{display:flex;gap:10px;align-items:center;margin:8px 0}.row span{flex:1;color:var(--mu);font-size:13px}
+input[type=range]{flex:1.4;accent-color:var(--ac)}input[type=color]{width:40px;height:28px;border:1px solid var(--bd);background:none;border-radius:6px;padding:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.tag{display:inline-block;font-size:11.5px;padding:2px 9px;border-radius:999px;background:var(--sf2);border:1px solid var(--bd);margin:0 4px 4px 0;color:var(--mu)}
+.note{font-size:12px;color:var(--mu);margin:8px 0}
+.c{transition:border-color .15s,transform .15s;word-break:break-word;overflow:hidden}.c:hover{border-color:var(--mu)}
+.c p{color:var(--mu);margin:6px 0}.c h3{margin-bottom:4px}.c img:not(.av):not(.pix){width:100%;height:150px;object-fit:cover;border-radius:8px;margin-bottom:10px}
+.badge{position:absolute;top:12px;right:12px;background:var(--ac);color:var(--acf);font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px}
+.fr-gold{border-color:#d9a21b}.fr-diamond{border-color:#39c5d4}.fr-obsidian{border-color:#7a4fd0}
+.hc{border-left:3px solid var(--ac)}.hc .pr{color:var(--ac);font-size:18px;font-weight:650}
+.rolechk{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}.rolechk label{margin:3px 0;display:flex;gap:7px;align-items:center;color:var(--tx)}
+.av{border-radius:50%;object-fit:cover;display:inline-block;text-align:center;vertical-align:middle;margin-right:6px;font-size:11px;font-weight:600;color:var(--acf);flex:none;background:var(--ac)}
+.c img.av,.rc img.av{border-radius:50%;margin:0 6px 0 0;height:auto;object-fit:cover}
+.pc{padding:0}.pc .bn{height:64px}.pc .bd{padding:0 16px 16px}.av.big,.c img.av.big{width:72px;height:72px;margin:-36px 0 8px;border:3px solid var(--sf);display:block;line-height:66px;font-size:22px}
+.c img.pix{width:22px;height:22px;margin:0 6px;border-radius:4px;image-rendering:pixelated;vertical-align:middle;display:inline}
+.soc{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.so{font-size:12px;padding:3px 10px;border-radius:6px;border:1px solid var(--bd);color:var(--tx);text-decoration:none;cursor:pointer;background:var(--sf2)}.so:hover{border-color:var(--ac)}
+.stars{display:flex;gap:4px;cursor:pointer}.stars svg{width:30px;height:30px}.stars .pop{animation:pop .3s}@keyframes pop{50%{transform:scale(1.3)}}
+.scene{perspective:1100px;height:290px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin:14px 0}
+.ring{position:relative;width:230px;height:170px;transform-style:preserve-3d;animation:spin 34s linear infinite}.scene:hover .ring{animation-play-state:paused}@keyframes spin{to{transform:rotateY(-360deg)}}
+.rc{position:absolute;inset:0;padding:14px;backface-visibility:hidden;background:var(--sf);border:1px solid var(--bd);border-radius:12px;overflow:hidden;font-size:12.5px}.rc svg{width:14px;height:14px}.rc p{margin:6px 0;color:var(--mu)}
+.faqi{margin-bottom:8px;padding:0}.faqi button{all:unset;display:flex;justify-content:space-between;gap:10px;width:100%;box-sizing:border-box;padding:14px 16px;cursor:pointer;font-weight:550}
+.faqi .a{max-height:0;overflow:hidden;color:var(--mu);padding:0 16px;transition:max-height .3s,padding .3s}.faqi.on .a{max-height:260px;padding:0 16px 14px}.pl{transition:.2s;color:var(--mu)}.faqi.on .pl{transform:rotate(45deg)}
+.cv{border-radius:12px;border:1px solid var(--bd);background:repeating-conic-gradient(var(--sf2) 0 25%,var(--sf) 0 50%) 0 0/20px 20px;overflow:hidden}.cv canvas{display:block;width:100%;height:auto}
+.drop{border:1.5px dashed var(--bd);border-radius:12px;padding:22px;text-align:center;color:var(--mu);transition:.15s}.drop.on{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 8%,transparent)}
+.tx{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.tile{all:unset;box-sizing:border-box;cursor:pointer;background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:8px;text-align:center;font-size:10.5px;color:var(--mu);overflow:hidden}
+.tile img{width:48px;height:48px;image-rendering:pixelated;display:block;margin:0 auto 5px}.tile span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tile:hover,.tile.on{border-color:var(--ac)}
+.bar{height:6px;background:var(--sf2);border-radius:999px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac);width:0;transition:width .4s}
+.ck{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--bd)}.ck input{accent-color:var(--ac);width:16px;height:16px}.ck span{flex:1}.ck.d span{color:var(--mu);text-decoration:line-through}
+.ckp{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mu);margin:14px 0 2px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}.st{padding:14px}.st b{display:block;font-size:24px;font-weight:650}.st span{color:var(--mu);font-size:12px}
+.seg{display:inline-flex;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:3px;margin-bottom:16px;flex-wrap:wrap}.seg button{all:unset;cursor:pointer;padding:6px 14px;border-radius:7px;color:var(--mu);font-weight:500}.seg button.on{background:var(--sf2);color:var(--tx)}
+.mo{background:#1c1411;border:2px solid #000;padding:12px 14px;font:16px/1.3 'Press Start 2P',monospace;font-size:13px;color:#aaa;min-height:62px;white-space:pre-wrap}
+.sw{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.sw button{width:26px;height:26px;border-radius:6px;border:1px solid var(--bd);cursor:pointer}
+pre{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:12px;overflow:auto;font:12.5px/1.5 ui-monospace,Menlo,monospace;margin:8px 0}code{font-family:ui-monospace,Menlo,monospace;background:var(--sf2);padding:1px 5px;border-radius:4px;font-size:12.5px}pre code{background:none;padding:0}
+.chat{display:grid;grid-template-columns:230px 1fr;gap:16px;height:calc(100vh - 190px);min-height:420px}
+.chs{display:flex;flex-direction:column;gap:6px;overflow:auto}.chs button{all:unset;cursor:pointer;padding:8px 10px;border-radius:8px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chs button:hover,.chs button.on{background:var(--sf2);color:var(--tx)}
+.chm{display:flex;flex-direction:column;background:var(--sf);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+#ch-msgs{flex:1;overflow:auto;padding:22px}
+.msg{display:flex;gap:12px;margin-bottom:20px;max-width:760px}.msg.u{margin-left:auto;flex-direction:row-reverse}
+.msg .b{min-width:0}.msg.u .b{background:var(--sf2);padding:9px 14px;border-radius:14px}
+.msg .ai{width:28px;height:28px;border-radius:8px;background:var(--ac);color:var(--acf);display:flex;align-items:center;justify-content:center;flex:none}.msg .ai svg{width:16px;height:16px}
+.msg p{margin:0 0 8px}.msg ul,.msg ol{margin:0 0 8px;padding-left:20px}.msg .cp{opacity:0;margin-top:2px}.msg:hover .cp{opacity:1}
+.empty{max-width:560px;margin:7vh auto 0;text-align:center}.empty h3{font-size:20px;margin-bottom:6px}.sug{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px}.sug button{cursor:pointer;background:var(--sf2);border:1px solid var(--bd);border-radius:999px;padding:7px 13px;color:var(--tx)}.sug button:hover{border-color:var(--ac)}
+.comp{display:flex;gap:10px;padding:12px;border-top:1px solid var(--bd);align-items:flex-end}.comp textarea{min-height:44px;max-height:160px;resize:none}
+.dots::after{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ac);animation:bl 1s infinite}@keyframes bl{50%{opacity:.2}}
+#cmd{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;display:flex;justify-content:center;padding-top:14vh}
+#cmd>div{width:min(520px,92vw);background:var(--sf);border:1px solid var(--bd);border-radius:12px;overflow:hidden;align-self:flex-start}
+#cmd input{border:0;border-bottom:1px solid var(--bd);border-radius:0;padding:14px 16px;box-shadow:none!important}#cmd button{all:unset;display:block;width:100%;box-sizing:border-box;padding:10px 16px;cursor:pointer}#cmd button.on,#cmd button:hover{background:var(--sf2)}
+.swa{display:flex;gap:10px}.swa button{width:32px;height:32px;border-radius:50%;border:2px solid transparent;cursor:pointer}.swa button.on{border-color:var(--tx)}
+@media(max-width:900px){#sb{position:fixed;left:0;top:0;transform:translateX(-100%);transition:.2s}#sb.open{transform:none;box-shadow:0 0 0 100vmax rgba(0,0,0,.5)}#mb{display:inline-flex}.sbtn{min-width:0}.sbtn span,.sbtn kbd{display:none}.two,.dg{grid-template-columns:1fr}.view{padding:20px 16px}#tb{padding:10px 16px}.chat{grid-template-columns:1fr}.chs{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<div id="login"><div class="lc pnl"><div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2.5 3.5 7v10L12 21.5 20.5 17V7z"/><path d="M3.5 7 12 11.5 20.5 7M12 11.5v10"/></svg><span>Server Studio</span></div>
+ <h2 id="lt">Welcome back</h2><p class="sub" style="margin-bottom:6px">Tools to launch and grow your Minecraft server.</p>
+ <label>Username</label><input id="u" type="text" autocomplete="username">
+ <label>Password</label><input id="p" type="password" autocomplete="current-password">
+ <div class="err" id="err"></div>
+ <button class="btn g w" id="go" style="margin-top:4px">Log in</button>
+ <button class="linkbtn" id="tog">Create an account</button></div></div>
+
+<div id="app" class="hide">
+ <aside id="sb"><div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2.5 3.5 7v10L12 21.5 20.5 17V7z"/><path d="M3.5 7 12 11.5 20.5 7M12 11.5v10"/></svg><span>Server Studio</span></div><div id="nav"></div></aside>
+ <div id="main">
+  <header id="tb"><button class="btn s" id="mb">Menu</button><span id="pt"></span><span class="sp"></span>
+   <button class="sbtn" id="sb-open"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><span>Search</span><kbd>Ctrl K</kbd></button><span id="who"></span><button class="btn s" id="out">Log out</button></header>
+  <div id="pages">
+   <section class="view" id="v-dash"><h2 id="d-hi">Dashboard</h2><p class="sub">Your launch plan, tools and community activity in one place.</p>
+    <div class="dg"><div class="col">
+     <div class="pnl"><div class="ph"><h3>Your server</h3></div>
+      <div class="f2"><div><label style="margin-top:0">Name</label><input id="sv-n" type="text" maxlength="40"></div><div><label style="margin-top:0">Type</label><select id="sv-t"><option>Survival</option><option>Lifesteal</option><option>Anarchy</option><option>Economy</option><option>Roleplay</option><option>Creative</option><option>PvP</option><option>Modded</option></select></div>
+      <div><label>Version</label><input id="sv-v" type="text" maxlength="12" placeholder="e.g. 1.21.4"></div><div><label>Players expected</label><input id="sv-p" type="number" min="2" max="500" value="20"></div></div>
+      <button class="btn g" id="sv-s" style="margin-top:14px">Save</button> <span class="note" id="sv-m"></span></div>
+     <div class="pnl"><div class="ph"><h3>Launch checklist</h3><span id="ck-p" class="note" style="margin:0"></span></div><div class="bar"><i id="ck-b"></i></div><div id="ck"></div></div></div>
+    <div class="col"><div class="stats" id="d-st"></div><div class="pnl" id="d-as"></div><div class="pnl"><div class="ph"><h3>Latest promotions</h3><button class="btn s" data-go="promo">View all</button></div><div id="d-rc"></div></div></div></div></section>
+
+   <section class="view" id="v-logo"><h2>Logo Studio</h2><p class="sub">3D block titles in the Minecraft font, filled with real block textures.</p>
+    <div class="two"><div class="pnl">
+     <label style="margin-top:0">Title</label><input id="t1" type="text" value="VOID"><label>Subtitle</label><input id="t2" type="text" value="SMP">
+     <label>Font</label><select id="font"></select>
+     <div class="row"><span>All caps</span><input id="caps" type="checkbox" checked></div>
+     <label>Letter fill</label><select id="fm"><option value="grad">Gradient</option><option value="band">Stone bands</option><option value="tex">Block texture</option></select>
+     <input id="tn" type="text" list="txl" placeholder="Block name, e.g. diamond_block" style="margin-top:8px" class="hide"><datalist id="txl"></datalist>
+     <div class="row"><span>Letter gap</span><input id="gap" type="range" min="0" max="4" value="1"></div>
+     <div class="row"><span>Subtitle size</span><input id="ss" type="range" min="20" max="80" value="45"></div>
+     <div class="row"><span>Depth</span><input id="dp" type="range" min="0" max="40" value="14"></div>
+     <div class="row"><span>Angle</span><input id="an" type="range" min="0" max="360" value="90"></div>
+     <div class="row"><span>Outline</span><input id="ow" type="range" min="0" max="16" value="6"></div>
+     <div class="row"><span>Sparkle</span><input id="sp" type="range" min="0" max="40" value="14"></div>
+     <label>Color presets</label><div class="chips" id="pre"></div>
+     <div class="row"><span>Top</span><input id="c1" type="color" value="#ff2bff"></div><div class="row"><span>Bottom</span><input id="c2" type="color" value="#a000ff"></div>
+     <div class="row"><span>Side</span><input id="c3" type="color" value="#5a0fa0"></div><div class="row"><span>Outline</span><input id="c4" type="color" value="#2d0a55"></div>
+     <div class="row"><span>Sub top</span><input id="d1" type="color" value="#38d6ff"></div><div class="row"><span>Sub bottom</span><input id="d2" type="color" value="#1a6fd0"></div>
+     <div class="row"><span>Transparent background</span><input id="tr" type="checkbox" checked></div>
+     <button class="btn g w" id="dl">Download PNG</button></div>
+    <div><div class="cv"><canvas id="cv" width="1000" height="520"></canvas></div><p class="note" id="font-note"></p></div></div></section>
+
+   <section class="view" id="v-tex"><h2>Textures &amp; Font</h2><p class="sub">Import your own Minecraft assets to unlock real block textures and the Minecraft font.</p>
+    <div class="pnl" style="margin-bottom:16px"><div class="drop" id="drop"><b style="color:var(--tx)">Drop files here</b> or <label style="display:inline;margin:0;color:var(--ac);cursor:pointer">browse<input id="imp" type="file" multiple accept=".zip,.jar,.png,.ttf,.otf,.woff,.woff2" class="hide"></label>
+     <p style="margin:8px 0 0">Accepts the game <code>.jar</code> (launcher folder → versions), a resource pack <code>.zip</code>, single <code>.png</code> textures, <code>ascii.png</code>, or a <code>.ttf/.otf</code> font.</p></div>
+     <p class="note" id="imp-st">Minecraft’s textures and font belong to Mojang, so they can’t be bundled. Everything you import stays in your browser.</p>
+     <button class="btn s" id="imp-x">Remove imported assets</button></div>
+    <div class="two" style="grid-template-columns:1fr 280px"><div><div class="ph"><input id="tx-q" type="text" placeholder="Search textures" style="max-width:280px"><span class="note" id="tx-n" style="margin:0"></span></div><div class="tx" id="txg"></div><button class="btn w hide" id="tx-more">Show more</button></div>
+     <div class="pnl" id="tx-d" style="position:sticky;top:76px"><p class="note">Select a texture.</p></div></div></section>
+
+   <section class="view" id="v-kit"><h2>Server Kit</h2><p class="sub">The setup pieces every server needs.</p><div class="seg" id="kit-tabs"></div>
+    <div class="kp" id="k-motd"><div class="two" style="grid-template-columns:1fr 1fr"><div class="pnl"><label style="margin-top:0">Line 1</label><input id="mo1" type="text" maxlength="90" value="&amp;6&amp;lVOID SMP &amp;r&amp;7| 1.21"><label>Line 2</label><input id="mo2" type="text" maxlength="90" value="&amp;aSeason 3 is live!">
+      <label>Colors (inserts a color code)</label><div class="sw" id="mo-c"></div><div class="chips" id="mo-f"></div><p class="note">Use &amp; codes here. They’re converted for server.properties.</p></div>
+     <div><div class="mo" id="mo-pv"></div><label>server.properties line</label><textarea id="mo-o" readonly style="min-height:64px;font-family:ui-monospace,monospace"></textarea><button class="btn s" data-copy="mo-o">Copy</button></div></div></div>
+    <div class="kp hide" id="k-icon"><div class="two" style="grid-template-columns:320px 1fr"><div class="pnl"><label style="margin-top:0">Source</label><select id="ic-s"><option value="logo">Logo Studio design</option><option value="tex">Block texture</option></select>
+      <input id="ic-t" type="text" list="txl" placeholder="Block name" class="hide" style="margin-top:8px"><div class="row"><span>Background</span><input id="ic-b" type="color" value="#14181f"></div><div class="row"><span>Transparent</span><input id="ic-tr" type="checkbox"></div>
+      <button class="btn g w" id="ic-d">Download server-icon.png</button><p class="note">Server icons are 64×64 PNGs named <code>server-icon.png</code>, placed in your server folder.</p></div>
+     <div><canvas id="ic" width="64" height="64" style="width:192px;height:192px;image-rendering:pixelated;border:1px solid var(--bd);border-radius:10px"></canvas></div></div></div>
+    <div class="kp hide" id="k-rules"><div class="two" style="grid-template-columns:320px 1fr"><div class="pnl" id="ru-l"></div><div class="pnl"><textarea id="ru-o" style="min-height:340px"></textarea><button class="btn s" data-copy="ru-o" style="margin-top:8px">Copy rules</button></div></div></div>
+    <div class="kp hide" id="k-conf"><div class="pnl" style="margin-bottom:16px"><div class="f2"><div><label style="margin-top:0">Type</label><select id="cf-t"><option>Survival</option><option>Lifesteal</option><option>Anarchy</option><option>Economy</option><option>Roleplay</option><option>Creative</option><option>PvP</option><option>Modded</option></select></div><div><label style="margin-top:0">Players</label><input id="cf-p" type="number" min="2" max="500" value="20"></div></div>
+      <div class="row"><span>Bedrock players can join</span><input id="cf-b" type="checkbox"></div><button class="btn g" id="cf-g">Generate setup</button></div><div id="cf-o"></div></div></section>
+
+   <section class="view" id="v-promo"><h2>Promotions</h2><p class="sub">List your server with a picture, description and custom look.</p>
+  <div class="two"><div class="pnl"><h3>New promo</h3>
+   <label>Server name</label><input id="p-n" type="text" maxlength="40">
+   <label>IP or invite</label><input id="p-ip" type="text" maxlength="60">
+   <label>Type</label><select id="p-t"><option>Survival</option><option>Lifesteal</option><option>Anarchy</option><option>Economy</option><option>Roleplay</option><option>Creative</option><option>PvP</option><option>Modded</option></select>
+   <label>Picture</label><input id="p-img" type="file" accept="image/*">
+   <label>Description</label><textarea id="p-d" maxlength="300"></textarea>
+   <label>Badge text (optional)</label><input id="p-b" type="text" maxlength="14" placeholder="NEW!">
+   <label>Frame</label><select id="p-f"><option value="stone">Stone</option><option value="gold">Gold</option><option value="diamond">Diamond</option><option value="obsidian">Obsidian</option></select>
+   <div class="row"><span>Card color</span><input id="p-c" type="color" value="#3f8f2f"></div>
+   <button class="btn g w" id="p-post">Post promo</button><div class="err" id="p-err"></div></div>
+  <div><div class="row"><span>Filter</span><select id="p-fl" style="flex:2"><option>All</option><option>Survival</option><option>Lifesteal</option><option>Anarchy</option><option>Economy</option><option>Roleplay</option><option>Creative</option><option>PvP</option><option>Modded</option></select></div>
+  <div class="note" id="p-note"></div><div class="grid" id="p-list"></div></div></div></section> <section class="view" id="v-rec"><h2>Staff Recruiting</h2><p class="sub">Find moderators, builders, developers and more.</p>
+  <div class="two"><div class="pnl"><h3>New recruit post</h3>
+   <label>Server name</label><input id="r-n" type="text" maxlength="40">
+   <label>Roles needed</label><div class="rolechk" id="r-roles"></div>
+   <div class="row"><input id="r-cr" type="text" maxlength="24" placeholder="Write your own role"><button class="btn s g" id="r-add" style="flex:none">Add</button></div>
+   <label>Requirements</label><textarea id="r-q" maxlength="250"></textarea>
+   <label>About the server</label><textarea id="r-d" maxlength="300"></textarea>
+   <label>How to apply (Discord, form, IP...)</label><input id="r-c" type="text" maxlength="80">
+   <label>Picture (optional)</label><input id="r-img" type="file" accept="image/*">
+   <div class="row"><span>Card color</span><input id="r-col" type="color" value="#ffaa00"></div>
+   <button class="btn g w" id="r-post">Post</button><div class="err" id="r-err"></div></div>
+  <div><div class="note" id="r-note"></div><div class="grid" id="r-list"></div></div></div></section> <section class="view" id="v-host"><h2>Hosting Finder</h2><p class="sub">Tell us your player count. We’ll find the best service for the lowest price.</p>
+  <div class="pnl" style="max-width:640px">
+   <div class="row"><span>Players: <b id="h-pv" style="color:#ffff55">10</b></span><input id="h-p" type="range" min="2" max="150" value="10"></div>
+   <div class="row"><span>Setup</span><select id="h-m"><option value="0">Vanilla / plugins</option><option value="1">Modpack</option></select></div>
+   <div class="row"><span>Prefer</span><select id="h-o"><option value="cheap">Cheapest</option><option value="value">Best value</option><option value="service">Best service</option></select></div>
+   <button class="btn g w" id="h-go">Find hosting</button></div>
+  <div id="h-res" style="margin-top:14px"></div>
+  <p class="note">Prices are USD per GB of RAM on each host’s base plan, from comparison sites in Sept 2026. They change, may exclude tax and renewals differ. Always confirm on the host’s site. Ratings are editor scores, not ours. Apex Hosting also scores well for 24/7 chat support but isn’t priced here.</p></section> <section class="view" id="v-rev"><h2>Reviews</h2><p class="sub">Leave a rating. It joins the review ring and stays there.</p>
+  <div class="pnl" style="max-width:560px"><b id="avg" style="color:#ffff55">No reviews yet</b>
+   <div class="stars" id="stars" style="margin-top:10px"></div>
+   <label>Server (optional)</label><input id="rv-s" type="text" maxlength="40">
+   <label>Your review</label><textarea id="rv-t" maxlength="200"></textarea>
+   <button class="btn g w" id="rv-post">Post review</button><div class="err" id="rv-err"></div></div>
+  <div class="scene"><div class="ring" id="ring"></div></div></section>
+
+   <section class="view" id="v-ai"><h2>AI Assistant</h2><p class="sub">Ask about setup, plugins, lag, staff, events, lore and growth.</p>
+    <div class="chat"><div class="chs"><button class="btn g" id="ch-new" style="justify-content:center">New chat</button><div id="ch-list" style="display:grid;gap:2px"></div></div>
+     <div class="chm"><div id="ch-msgs"></div><div class="comp"><textarea id="ch-in" rows="1" placeholder="Message the assistant"></textarea><button class="btn g" id="ch-send">Send</button></div></div></div></section>
+
+   <section class="view" id="v-prof"><h2>Profile</h2><p class="sub">Add a picture, your socials and cool extras. Everyone can see it.</p>
+  <div class="two"><div class="pnl">
+   <label>Profile picture</label><input id="pf-pic" type="file" accept="image/*">
+   <label>Display name</label><input id="pf-n" type="text" maxlength="30">
+   <label>Tagline</label><input id="pf-t" type="text" maxlength="60">
+   <label>About you</label><textarea id="pf-b" maxlength="220"></textarea>
+   <label>Status</label><select id="pf-st"></select>
+   <label>Skills (comma separated)</label><input id="pf-sk" type="text" maxlength="80" placeholder="building, redstone, java">
+   <label>Favorite block</label><select id="pf-fav"></select>
+   <div class="row"><span>Banner color</span><input id="pf-c" type="color" value="#b44cff"></div>
+   <h3 style="margin-top:14px">Socials</h3><div id="pf-soc"></div>
+   <button class="btn g w" id="pf-save">Save profile</button><div class="err" id="pf-err"></div></div>
+  <div><div id="pf-me"></div><h3 style="margin:18px 0 10px">Community</h3><div class="grid" id="pf-all"></div></div></div></section> <section class="view" id="v-faq"><h2>FAQ</h2><p class="sub">Quick answers.</p><input id="faq-s" type="text" placeholder="Search questions..." style="margin-bottom:14px"><div id="faq"></div></section>
+   <section class="view" id="v-upd"><h2>Updates</h2><p class="sub">What’s new in Server Studio.</p><div id="upd-list" style="display:grid;gap:12px;max-width:720px"></div></section>
+   <section class="view" id="v-set"><h2>Settings</h2><p class="sub">Appearance and data.</p><div class="pnl" style="max-width:520px">
+    <label style="margin-top:0">Theme</label><select id="s-th"><option value="dark">Dark</option><option value="light">Light</option><option value="auto">Match system</option></select>
+    <label>Accent color</label><div class="swa" id="s-ac"></div>
+    <label>Data</label><button class="btn s" id="s-ck">Reset launch checklist</button></div></section>
+  </div></div></div>
+<div id="cmd" class="hide"><div><input id="cmd-q" type="text" placeholder="Jump to..."><div id="cmd-l"></div></div></div>
+<script>
+const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ls={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const readURL=f=>new Promise(r=>{const x=new FileReader;x.onload=()=>r(x.result);x.readAsDataURL(f)});
+const loadImg=u=>new Promise((r,j)=>{const i=new Image;i.onload=()=>r(i);i.onerror=j;i.src=u});
+async function saveFile(name,blob){try{const d=await claude.use('downloads');if(d){await d.save({filename:name,data:blob});return}}catch(e){}const a=document.createElement('a');a.download=name;a.href=URL.createObjectURL(blob);a.click()}
+const idb={open(){return new Promise((res,rej)=>{const r=indexedDB.open('serverstudio',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})},
+ async get(k){try{const d=await this.open();return await new Promise(r=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r()})}catch(e){}},
+ async set(k,v){try{const d=await this.open();await new Promise(r=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=r;t.onerror=r})}catch(e){}}};
+/* ---------- imported assets: textures + font ---------- */
+let TXS={},ASC='',FNT=[],MCG=null;const TXI={};
+const CUR=['stone','dirt','grass_block_side','cobblestone','oak_planks','oak_log','diamond_ore','gold_ore','iron_ore','emerald_ore','redstone_ore','netherrack','obsidian','deepslate','bedrock','tnt_side','gold_block','diamond_block','emerald_block','glowstone','amethyst_block','copper_block','ancient_debris_side','crying_obsidian','sculk','purpur_block'];
+function texC(n){if(TXI[n])return TXI[n];if(!TXS[n]||TXI[n]===0)return null;TXI[n]=0;const im=new Image();im.onload=()=>{const s=Math.min(im.width,im.height),c=document.createElement('canvas');c.width=c.height=s;const x=c.getContext('2d');x.drawImage(im,0,0,s,s,0,0,s,s);const d=x.getImageData(0,0,s,s).data;let r=0,g=0,b=0,k=0;for(let i=0;i<d.length;i+=4)if(d[i+3]>20){r+=d[i];g+=d[i+1];b+=d[i+2];k++}k=k||1;const h=v=>Math.round(v/k).toString(16).padStart(2,'0');c.avg='#'+h(r)+h(g)+h(b);TXI[n]=c;render();drawIcon()};im.src=TXS[n];return null}
+async function buildGlyphs(){MCG=null;if(!ASC)return;const im=await loadImg(ASC),W=im.width,c=document.createElement('canvas');c.width=W;c.height=im.height;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0);const d=x.getImageData(0,0,W,im.height).data,cell=W/16,f=cell/8;MCG={};
+ for(let code=32;code<127;code++){const gx=(code&15)*cell,gy=(code>>4)*cell,cells=[];let w=0;for(let j=0;j<8;j++)for(let i=0;i<8;i++){const px=Math.floor(gx+i*f+f/2),py=Math.floor(gy+j*f+f/2);if(d[(py*W+px)*4+3]>128){cells.push([i,j]);w=Math.max(w,i+1)}}MCG[String.fromCharCode(code)]={w:code===32?3:w,c:cells}}}
+async function regFont(name,buf){try{const ff=new FontFace('MC_'+name,buf);await ff.load();document.fonts.add(ff)}catch(e){}}
+async function importFiles(fs){const st=$('imp-st');let n=0;
+ for(const f of fs){const nm=f.name.toLowerCase();
+  if(/\.(zip|jar)$/.test(nm)){if(!window.JSZip){st.textContent='The zip reader didn’t load. Check your connection and try again.';continue}
+   try{const z=await JSZip.loadAsync(f),ents=Object.keys(z.files),bl=ents.filter(p=>/textures\/blocks?\/[^\/]+\.png$/.test(p));
+    for(let i=0;i<bl.length;i+=40){await Promise.all(bl.slice(i,i+40).map(async p=>{TXS[p.split('/').pop().replace('.png','')]='data:image/png;base64,'+await z.files[p].async('base64');n++}));st.textContent=`Reading textures ${Math.min(i+40,bl.length)} of ${bl.length}`}
+    const fp=ents.find(p=>/textures\/font\/ascii\.png$/.test(p));if(fp)ASC='data:image/png;base64,'+await z.files[fp].async('base64')}catch(e){st.textContent='Couldn’t read that file as a zip.'}}
+  else if(/ascii.*\.png$/.test(nm))ASC=await readURL(f);
+  else if(/\.png$/.test(nm)){TXS[nm.replace('.png','')]=await readURL(f);n++}
+  else if(/\.(ttf|otf|woff2?)$/.test(nm)){const buf=await f.arrayBuffer(),name=f.name.replace(/\.[^.]+$/,'');FNT=FNT.filter(x=>x.name!==name);FNT.push({name,buf});await regFont(name,buf)}}
+ await buildGlyphs();await idb.set('assets',{TXS,ASC,FNT});refreshAssets()}
+function refreshAssets(){const nt=Object.keys(TXS).length;
+ $('imp-st').textContent=nt||MCG||FNT.length?`${nt} textures · Minecraft font ${MCG?'loaded':'not found'}${FNT.length?' · '+FNT.length+' custom font'+(FNT.length>1?'s':''):''}`:'Minecraft’s textures and font belong to Mojang, so they can’t be bundled. Everything you import stays in your browser.';
+ $('txl').innerHTML=Object.keys(TXS).sort().map(n=>`<option value="${esc(n)}">`).join('');
+ const fav=$('pf-fav'),cur=fav.value;fav.innerHTML='<option value="">None</option>'+CUR.filter(n=>TXS[n]).map(n=>`<option>${n}</option>`).join('');fav.value=cur;
+ fontOpts();drawTex();drawDash();render();drawIcon();$('font-note').textContent=MCG?'':'Import the game .jar or ascii.png in Textures & Font to unlock the Minecraft font. Press Start 2P is used until then.'}
+$('imp').onchange=e=>importFiles([...e.target.files]);
+const dz=$('drop');['dragover','dragenter'].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.classList.add('on')}));['dragleave','drop'].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.classList.remove('on')}));dz.addEventListener('drop',e=>importFiles([...e.dataTransfer.files]));
+$('imp-x').onclick=async()=>{TXS={};ASC='';FNT=[];MCG=null;for(const k in TXI)delete TXI[k];await idb.set('assets',{TXS,ASC,FNT});refreshAssets()};
+/* textures page */
+let tlim=120,tsel='';
+function drawTex(){const q=$('tx-q').value.trim().toLowerCase(),all=Object.keys(TXS).sort(),names=all.filter(n=>!q||n.includes(q));$('tx-n').textContent=all.length?names.length+' textures':'';
+ $('txg').innerHTML=all.length?names.slice(0,tlim).map(n=>`<button class="tile${n===tsel?' on':''}" data-n="${esc(n)}"><img loading="lazy" src="${TXS[n]}" alt=""><span>${esc(n)}</span></button>`).join(''):'<p class="note">No textures imported yet.</p>';
+ $('tx-more').classList.toggle('hide',names.length<=tlim);$('txg').querySelectorAll('.tile').forEach(b=>b.onclick=()=>{tsel=b.dataset.n;drawTex();texDetail()})}
+function texDetail(){const n=tsel;if(!TXS[n])return;$('tx-d').innerHTML=`<img src="${TXS[n]}" style="width:128px;height:128px;image-rendering:pixelated;border-radius:8px;border:1px solid var(--bd)" alt=""><h3 style="margin:10px 0 2px">${esc(n)}</h3><div style="display:grid;gap:8px;margin-top:12px"><button class="btn g" id="td-l">Use in Logo Studio</button><button class="btn" id="td-i">Use as server icon</button><button class="btn" id="td-d">Download PNG</button></div>`;
+ $('td-l').onclick=()=>{$('fm').value='tex';$('tn').value=n;go('logo')};$('td-i').onclick=()=>{$('ic-s').value='tex';$('ic-t').value=n;go('kit','icon')};
+ $('td-d').onclick=()=>{const z=document.createElement('canvas');z.width=z.height=256;const x=z.getContext('2d');x.imageSmoothingEnabled=false;loadImg(TXS[n]).then(im=>{const s=Math.min(im.width,im.height);x.drawImage(im,0,0,s,s,0,0,256,256);z.toBlob(b=>saveFile(n+'.png',b))})}}
+$('tx-q').oninput=()=>{tlim=120;drawTex()};$('tx-more').onclick=()=>{tlim+=120;drawTex()};
+/* database */
+let db=null,promos=[],recs=[],reviews=[],profiles=[];
+async function initDb(){try{db=await claude.use('db')}catch(e){}
+ const sub=(c,f)=>db.collection(c).onSnapshot(s=>{f(s.docs.map(d=>({id:d.id,...d.data()})))},()=>{});
+ if(db){sub('profiles',a=>{profiles=a;drawAll();topWho()});sub('promos',a=>{promos=a;drawPromo()});sub('recruits',a=>{recs=a;drawRec()});sub('reviews',a=>{reviews=a;drawRev()})}
+ else{['p-note','r-note'].forEach(i=>$(i).textContent='Saving isn’t available here, so posts only show on this page.')}}
+window.addEventListener('load',()=>{try{initDb()}catch(e){}});
+const mem={promos:()=>promos,recruits:()=>recs,reviews:()=>reviews};
+async function save(col,o){if(db)await db.collection(col).add(o);else{(col==='promos'?promos:col==='recruits'?recs:reviews).push({id:Math.random().toString(36).slice(2),...o});drawAll()}}
+async function del(col,id){if(db)await db.collection(col).doc(id).delete().catch(()=>{});else{const a={promos:'promos',recruits:'recs'}[col];if(col==='promos')promos=promos.filter(x=>x.id!==id);else recs=recs.filter(x=>x.id!==id);drawAll()}}
+function pic(inp){return new Promise(res=>{const f=$(inp).files[0];if(!f)return res('');const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{const k=Math.min(1,440/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.7))};im.onerror=()=>res('');im.src=u})}
+const drawAll=()=>{drawPromo();drawRec();drawRev();drawProf();drawDash()};
+const copyBtns=r=>r.querySelectorAll('[data-cp]').forEach(b=>b.onclick=()=>{try{navigator.clipboard.writeText(b.dataset.cp)}catch(e){}b.textContent='Copied!'});
+/* promos */
+function drawPromo(){const f=$('p-fl').value,l=promos.filter(m=>f==='All'||m.type===f).sort((a,b)=>b.ts-a.ts),el=$('p-list');
+ el.innerHTML=l.length?l.map((m,i)=>`<div class="pnl c fr-${esc(m.frame)}" style="position:relative;animation-delay:${i*50}ms;border-top:8px solid ${esc(m.color||'#3f8f2f')}">${m.badge?`<span class="badge">${esc(m.badge)}</span>`:''}${m.img?`<img src="${m.img}" alt="">`:''}<span class="tag">${esc(m.type)}</span><h3>${esc(m.name)}</h3><p>${esc(m.desc)}</p><p style="color:#fff">${esc(m.ip)}</p><p style="font-size:8px">${av(m.by,22)}by ${esc(m.by)}</p><button class="btn s g" data-cp="${esc(m.ip)}">Copy IP</button>${m.by===me?` <button class="btn s" data-del="${m.id}">Delete</button>`:''}</div>`).join(''):'<p class="note">No promos yet. Post the first one!</p>';
+ copyBtns(el);el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>del('promos',b.dataset.del))}
+$('p-fl').onchange=drawPromo;
+$('p-post').onclick=async()=>{const n=$('p-n').value.trim(),ip=$('p-ip').value.trim(),d=$('p-d').value.trim();if(!n||!ip||d.length<10){$('p-err').textContent='Add a name, IP and description (10+ chars).';return}
+ try{await save('promos',{name:n,ip,desc:d,type:$('p-t').value,img:await pic('p-img'),badge:$('p-b').value.trim(),frame:$('p-f').value,color:$('p-c').value,by:me,ts:Date.now()});$('p-err').textContent='';['p-n','p-ip','p-d','p-b'].forEach(i=>$(i).value='');$('p-img').value=''}catch(e){$('p-err').textContent='Could not post. Ask the owner for contributor access.'}};
+/* recruiting */
+const ROLES=['Moderator','Builder','Developer','Event host','Artist','Community manager','Lore writer','Economy manager'];
+$('r-roles').innerHTML=ROLES.map(r=>`<label><input type="checkbox" value="${r}">${r}</label>`).join('');
+$('r-add').onclick=()=>{const v=$('r-cr').value.trim();if(!v)return;if([...document.querySelectorAll('#r-roles input')].some(i=>i.value.toLowerCase()===v.toLowerCase())){$('r-cr').value='';return}const l=document.createElement('label');l.className='cu';const i=document.createElement('input');i.type='checkbox';i.value=v;i.checked=true;l.append(i,v);$('r-roles').appendChild(l);$('r-cr').value=''};
+function drawRec(){const l=[...recs].sort((a,b)=>b.ts-a.ts),el=$('r-list');
+ el.innerHTML=l.length?l.map((m,i)=>`<div class="pnl c" style="animation-delay:${i*50}ms;border-top:8px solid ${esc(m.color||'#ffaa00')}">${m.img?`<img src="${m.img}" alt="">`:''}<h3>${esc(m.name)}</h3><p>${(m.roles||[]).map(r=>`<span class="tag">${esc(r)}</span>`).join('')}</p><p>${esc(m.desc)}</p><p style="color:#fff">Needs: ${esc(m.reqs)}</p><p>Apply: <b style="color:#ffff55">${esc(m.contact)}</b></p><p style="font-size:8px">${av(m.by,22)}by ${esc(m.by)}</p><button class="btn s g" data-cp="${esc(m.contact)}">Copy contact</button>${m.by===me?` <button class="btn s" data-del="${m.id}">Delete</button>`:''}</div>`).join(''):'<p class="note">No recruit posts yet.</p>';
+ copyBtns(el);el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>del('recruits',b.dataset.del))}
+$('r-post').onclick=async()=>{const n=$('r-n').value.trim(),roles=[...document.querySelectorAll('#r-roles input:checked')].map(i=>i.value),c=$('r-c').value.trim();if(!n||!roles.length||!c){$('r-err').textContent='Add a name, at least one role and how to apply.';return}
+ try{await save('recruits',{name:n,roles,reqs:$('r-q').value.trim(),desc:$('r-d').value.trim(),contact:c,img:await pic('r-img'),color:$('r-col').value,by:me,ts:Date.now()});$('r-err').textContent='';['r-n','r-q','r-d','r-c'].forEach(i=>$(i).value='');document.querySelectorAll('#r-roles .cu').forEach(l=>l.remove());document.querySelectorAll('#r-roles input').forEach(i=>i.checked=false);$('r-img').value=''}catch(e){$('r-err').textContent='Could not post. Ask the owner for contributor access.'}};
+/* hosting */
+const H=[{n:'PebbleHost',g:1,s:8.9,loc:'7 locations',t:'Lowest price per GB, no intro-discount tricks. Small plans bill quarterly and restores can cost extra. 3-day refund.'},{n:'Sparked Host',g:1,s:8.6,loc:'10 locations',t:'$1/GB budget line with faster Ryzen tiers above it. 1-day refund window.'},{n:'Shockbyte',g:1.99,s:9.1,loc:'',t:'Established host with cheap entry plans and automatic backups. Premium plans cost more per GB.'},{n:'ScalaCube',g:2.67,s:8.5,loc:'14 locations',t:'Has a free plan, many locations and a 7-day refund.'},{n:'Nodecraft',g:2.98,s:8.8,loc:'27 locations',t:'Best when your players are spread across many regions.'},{n:'BisectHosting',g:3,s:9.3,loc:'21 locations',t:'Top rated of this list, with one-click modpacks and Bedrock support.'}];
+$('h-p').oninput=()=>$('h-pv').textContent=$('h-p').value;
+$('h-go').onclick=()=>{const p=+$('h-p').value,m=+$('h-m').value,ram=Math.max(2,Math.ceil((m?4:2)+p*(m?.2:.1))),o=$('h-o').value;
+ const l=H.map(h=>({...h,cost:h.g*ram,v:Math.pow(h.s/10,4)/(h.g*ram)})).sort((a,b)=>o==='cheap'?a.cost-b.cost:o==='service'?b.s-a.s:b.v-a.v).slice(0,3);
+ $('h-res').innerHTML=`<p style="color:#ffff55">Estimated RAM: about ${ram} GB${p>80?'. At this size also look at a VPS or dedicated machine.':''}</p>`+l.map((h,i)=>`<div class="pnl c hc" style="margin-bottom:10px;animation-delay:${i*80}ms"><h3>#${i+1} ${h.n}</h3><p class="pr">About $${h.cost.toFixed(2)}/mo</p><p>Rating ${h.s}/10 ${h.loc?'· '+h.loc:''}</p><p>${h.t}</p></div>`).join('')};
+/* reviews */
+const star=on=>`<svg viewBox="0 0 7 7" shape-rendering="crispEdges"><path fill="${on?'#ffcf3f':'#4a4a4a'}" d="M3 0h1v2h3v1H0V2h3zM1 3h5v1H1zM2 4h3v1H2zM1 5h2v1H1zM4 5h2v1H4zM1 6h1v1H1zM5 6h1v1H5z"/></svg>`;
+let rating=0;const stars=$('stars');
+function paintStars(n,pop){stars.innerHTML='';for(let i=1;i<=5;i++){const s=document.createElement('span');s.innerHTML=star(i<=n);if(pop&&i<=n)s.firstChild.classList.add('pop');s.onclick=()=>{rating=i;paintStars(i,true)};stars.appendChild(s)}}paintStars(0);
+$('rv-post').onclick=async()=>{const t=$('rv-t').value.trim();if(!rating||t.length<5){$('rv-err').textContent='Pick stars and write a short review.';return}
+ try{await save('reviews',{stars:rating,text:t,server:$('rv-s').value.trim(),by:me,ts:Date.now()});$('rv-err').textContent='';$('rv-t').value='';rating=0;paintStars(0)}catch(e){$('rv-err').textContent='Could not post. Ask the owner for contributor access.'}};
+function drawRev(){const n=reviews.length;$('avg').textContent=n?`${(reviews.reduce((a,b)=>a+b.stars,0)/n).toFixed(1)} stars from ${n} review${n>1?'s':''}`:'No reviews yet. Be the first!';ring()}
+function ring(){const l=[...reviews].sort((a,b)=>a.ts-b.ts),n=l.length,el=$('ring');if(!n){el.innerHTML='';return}
+ const r=Math.max(230,Math.round(250/2/Math.tan(Math.PI/Math.max(n,3)))+40);
+ el.innerHTML=l.map((x,i)=>`<div class="rc" style="transform:rotateY(${i*360/n}deg) translateZ(${r}px)"><b>${av(x.by,20)}${esc(x.by)}</b><div>${[1,2,3,4,5].map(k=>star(k<=x.stars)).join('')}</div>${x.server?`<span class="tag">${esc(x.server)}</span>`:''}<p>${esc(x.text)}</p></div>`).join('')}
+/* profiles */
+const pid=n=>String(n).replace(/[^\w-]/g,'_'),prof=n=>profiles.find(p=>p.id===pid(n));
+function av(n,sz=28){const p=prof(n);return p&&p.pic?`<img class="av" style="width:${sz}px;height:${sz}px" src="${p.pic}" alt="">`:`<span class="av" style="width:${sz}px;height:${sz}px;line-height:${sz}px">${esc((n||'?')[0].toUpperCase())}</span>`}
+function topWho(){$('who').innerHTML=av(me,24)+esc(me)}
+const SOC=[['discord','Discord'],['youtube','YouTube'],['twitch','Twitch'],['twitter','X / Twitter'],['instagram','Instagram'],['tiktok','TikTok'],['website','Website'],['mc','Minecraft name']];
+['Just vibing','Looking for a server','Hiring staff','Hosting a server','Building a project'].forEach(x=>$('pf-st').add(new Option(x)));
+
+$('pf-soc').innerHTML=SOC.map(([k,n])=>`<label>${n}</label><input id="so-${k}" type="text" maxlength="80" placeholder="${k==='website'||k==='youtube'?'https://...':'name or link'}">`).join('');
+function sq(inp){return new Promise(res=>{const f=$(inp).files[0];if(!f)return res('');const im=new Image();im.onload=()=>{const m=Math.min(im.width,im.height),c=document.createElement('canvas');c.width=c.height=144;c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,144,144);res(c.toDataURL('image/jpeg',.8))};im.onerror=()=>res('');im.src=URL.createObjectURL(f)})}
+function fillProf(){const p=prof(me)||{};$('pf-n').value=p.name||me;$('pf-t').value=p.tag||'';$('pf-b').value=p.bio||'';$('pf-st').value=p.status||'Just vibing';$('pf-sk').value=(p.skills||[]).join(', ');$('pf-fav').value=p.fav||'';$('pf-c').value=p.banner||'#b44cff';SOC.forEach(([k])=>$('so-'+k).value=(p.soc||{})[k]||'')}
+const lnk=(k,v)=>/^https?:\/\//i.test(v)?`<a class="so" href="${esc(v)}" target="_blank" rel="noopener noreferrer">${k}</a>`:`<span class="so" data-cp="${esc(v)}" title="Click to copy">${k}: ${esc(v)}</span>`;
+function profCard(p){const soc=Object.entries(p.soc||{}).filter(([k,v])=>v).map(([k,v])=>lnk((SOC.find(x=>x[0]===k)||[k,k])[1],v)).join('');
+ return `<div class="pnl c pc"><div class="bn" style="background:linear-gradient(135deg,${esc(p.banner||'#b44cff')},var(--acc2))"></div><div class="bd">${p.pic?`<img class="av big" src="${p.pic}" alt="">`:`<span class="av big">${esc((p.user||'?')[0].toUpperCase())}</span>`}<h3>${esc(p.name||p.user)}</h3><p style="margin:2px 0">@${esc(p.user)}</p>${p.tag?`<p style="color:#fff">${esc(p.tag)}</p>`:''}<span class="tag">${esc(p.status||'')}</span>${p.fav&&TXS[p.fav]?`<img class="pix" src="${TXS[p.fav]}" alt="" title="Favorite block">`:''}<p>${esc(p.bio)}</p><div>${(p.skills||[]).map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div><div class="soc">${soc}</div></div></div>`}
+function drawProf(){const m=prof(me);$('pf-me').innerHTML=m?profCard(m):'<p class="note">Save your profile to see your card here.</p>';
+ const l=profiles.filter(p=>p.id!==pid(me)).sort((a,b)=>b.ts-a.ts);$('pf-all').innerHTML=l.length?l.map(profCard).join(''):'<p class="note">No other profiles yet.</p>';copyBtns($('v-prof'))}
+$('pf-save').onclick=async()=>{const old=prof(me)||{},np=await sq('pf-pic'),soc={};SOC.forEach(([k])=>{const v=$('so-'+k).value.trim();if(v)soc[k]=v});
+ const o={user:me,name:$('pf-n').value.trim()||me,tag:$('pf-t').value.trim(),bio:$('pf-b').value.trim(),status:$('pf-st').value,skills:$('pf-sk').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,6),fav:$('pf-fav').value,banner:$('pf-c').value,pic:np||old.pic||'',soc,ts:Date.now()},e=$('pf-err');
+ try{if(db)await db.collection('profiles').doc(pid(me)).set(o);else{profiles=profiles.filter(p=>p.id!==pid(me));profiles.push({id:pid(me),...o});drawAll();topWho()}e.style.color='#55ffaa';e.textContent='Saved!'}catch(x){e.style.color='';e.textContent='Could not save. Ask the owner for contributor access.'}};
+
+/* ---------- navigation ---------- */
+const IC={dash:'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',logo:'M4 7V4h16v3M9 20h6M12 4v16',cube:'M12 2 3 7v10l9 5 9-5V7zM3 7l9 5 9-5M12 12v10',tools:'M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6',mega:'M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1zM15 8a5 5 0 0 1 0 8',team:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',server:'M3 4h18v6H3zM3 14h18v6H3zM7 7h.01M7 17h.01',star:'M12 2l3 7 7 .6-5.3 4.7 1.6 7.2L12 17.8 5.7 21.5l1.6-7.2L2 9.6 9 9z',chat:'M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-5.4A8 8 0 1 1 21 12z',user:'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8',help:'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01',down:'M12 3v12M7 10l5 5 5-5M5 21h14',set:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1'};
+const NAV=[['Workspace',[['dash','Dashboard','dash']]],['Create',[['logo','Logo Studio','logo'],['tex','Textures & Font','cube'],['kit','Server Kit','tools']]],['Grow',[['promo','Promotions','mega'],['rec','Recruiting','team'],['host','Hosting','server'],['rev','Reviews','star']]],['Assistant',[['ai','AI Assistant','chat']]],['Community',[['prof','Profile','user'],['faq','FAQ','help'],['upd','Updates','down']]],['Account',[['set','Settings','set']]]];
+const NAVF=NAV.flatMap(g=>g[1]);let page='dash';
+$('nav').innerHTML=NAV.map(([g,l])=>`<div class="ng">${g}</div>`+l.map(([k,n,i])=>`<button class="nv" data-k="${k}"><svg viewBox="0 0 24 24"><path d="${IC[i]}"/></svg>${n}</button>`).join('')).join('');
+document.querySelectorAll('.nv').forEach(b=>b.onclick=()=>show(b.dataset.k));
+function show(k){page=k;document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+k));document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.k===k));$('pt').textContent=(NAVF.find(x=>x[0]===k)||[0,''])[1];$('sb').classList.remove('open');scrollTo(0,0);
+ if(k==='logo')render();if(k==='rev')ring();if(k==='prof')fillProf();if(k==='tex')drawTex();if(k==='dash')drawDash();if(k==='ai')renderChat();if(k==='kit')kitTab(kt)}
+function go(k,sub){if(sub)kt=sub;show(k)}
+$('mb').onclick=()=>$('sb').classList.toggle('open');
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)go(g.dataset.go,g.dataset.sub);const c=e.target.closest('[data-copy]');if(c){const el=$(c.dataset.copy);try{navigator.clipboard.writeText(el.value||el.textContent)}catch(x){}const t=c.textContent;c.textContent='Copied';setTimeout(()=>c.textContent=t,1200)}});
+/* ---------- login ---------- */
+let reg=false,me='';const users=()=>ls.get('smpUsers',{});
+function enter(n){me=n;ls.set('ssSession',n);$('login').classList.add('hide');$('app').classList.remove('hide');topWho();loadServer();show('dash');drawAll()}
+$('tog').onclick=()=>{reg=!reg;$('go').textContent=reg?'Create account':'Log in';$('tog').textContent=reg?'I already have an account':'Create an account';$('lt').textContent=reg?'Create your account':'Welcome back';$('err').textContent=''};
+$('go').onclick=()=>{const n=$('u').value.trim(),p=$('p').value;if(n.length<3||p.length<4){$('err').textContent='Username needs 3+ characters and password 4+.';return}
+ const us=users();if(reg){if(us[n]){$('err').textContent='That username is taken.';return}us[n]=btoa(p);ls.set('smpUsers',us);enter(n)}else{if(us[n]!==btoa(p)){$('err').textContent='Wrong username or password.';return}enter(n)}};
+$('p').onkeydown=e=>{if(e.key==='Enter')$('go').click()};
+$('out').onclick=()=>{ls.set('ssSession','');me='';$('app').classList.add('hide');$('login').classList.remove('hide');$('p').value=''};
+/* ---------- dashboard ---------- */
+let SV={name:'',type:'Survival',ver:'',players:20,...ls.get('ssServer',{})};
+function loadServer(){$('sv-n').value=SV.name;$('sv-t').value=SV.type;$('sv-v').value=SV.ver;$('sv-p').value=SV.players;$('cf-t').value=SV.type;$('cf-p').value=SV.players}
+$('sv-s').onclick=()=>{SV={name:$('sv-n').value.trim(),type:$('sv-t').value,ver:$('sv-v').value.trim(),players:+$('sv-p').value||20};ls.set('ssServer',SV);loadServer();$('sv-m').textContent='Saved';setTimeout(()=>$('sv-m').textContent='',1500);drawDash()};
+const CK=[['p1','Pick your server type, version and player goal','Plan','dash'],['p2','Write your rules','Plan','kit','rules'],['p3','Decide which staff roles you need','Plan','rec'],['b1','Choose a host that fits your player count','Build','host'],['b2','Install server software and core plugins','Build','kit','conf'],['b3','Set up backups and test performance','Build'],['b4','Build spawn and test with friends','Build'],['r1','Make your logo','Brand','logo'],['r2','Write your MOTD and server icon','Brand','kit','motd'],['r3','Set up your community channels and socials','Brand','prof'],['l1','Recruit moderators and builders','Launch','rec'],['l2','Post your promotion','Launch','promo'],['l3','Run a soft launch and collect reviews','Launch','rev'],['l4','Plan your first event','Launch','ai']];
+function drawDash(){if(!me)return;const st=ls.get('ssCk:'+me,{}),done=CK.filter(x=>st[x[0]]).length,pct=Math.round(done/CK.length*100);
+ $('d-hi').textContent='Welcome, '+((prof(me)||{}).name||me);$('ck-p').textContent=`${done} of ${CK.length} done`;$('ck-b').style.width=pct+'%';
+ let ph='';$('ck').innerHTML=CK.map(x=>{const h=x[2]!==ph?`<div class="ckp">${x[2]}</div>`:'';ph=x[2];return h+`<div class="ck${st[x[0]]?' d':''}"><input type="checkbox" data-k="${x[0]}"${st[x[0]]?' checked':''}><span>${x[1]}</span>${x[3]?`<button class="btn s" data-go="${x[3]}"${x[4]?` data-sub="${x[4]}"`:''}>Open</button>`:''}</div>`}).join('');
+ $('ck').querySelectorAll('input').forEach(i=>i.onchange=()=>{const s=ls.get('ssCk:'+me,{});s[i.dataset.k]=i.checked;ls.set('ssCk:'+me,s);drawDash()});
+ const avg=reviews.length?(reviews.reduce((a,b)=>a+b.stars,0)/reviews.length).toFixed(1):'–';
+ $('d-st').innerHTML=[[promos.length,'Promotions'],[recs.length,'Recruit posts'],[avg,'Average rating'],[profiles.length,'Members']].map(([n,l])=>`<div class="pnl st"><b>${n}</b><span>${l}</span></div>`).join('');
+ const nt=Object.keys(TXS).length;$('d-as').innerHTML=`<div class="ph"><h3>Minecraft assets</h3></div><p class="note" style="margin-top:0">${nt?`${nt} block textures imported. Minecraft font ${MCG?'ready':'not found in your files'}.`:'Import your game files to use real block textures and the Minecraft font in Logo Studio.'}</p><button class="btn ${nt?'':'g'}" data-go="tex">${nt?'Manage assets':'Import assets'}</button>`;
+ const r=[...promos].sort((a,b)=>b.ts-a.ts).slice(0,3);$('d-rc').innerHTML=r.length?r.map(m=>`<div style="padding:8px 0;border-top:1px solid var(--bd)"><b>${esc(m.name)}</b> <span class="tag">${esc(m.type)}</span><div class="note" style="margin:0">${esc(m.ip)}</div></div>`).join(''):'<p class="note">No promotions yet.</p>'}
+/* ---------- logo studio ---------- */
+const V={'':{},' Bold':{b:1},' Italic':{i:1},' Wide':{sx:2},' Tall':{sy:2},' Mega':{sx:2,sy:2},' Tower':{sy:3},' Long':{sx:3}};
+function fontOpts(){const sel=$('font'),cu=sel.value,o=[];if(MCG)Object.keys(V).forEach(k=>o.push('Minecraft'+k));FNT.forEach(f=>o.push('Font: '+f.name));o.push('Press Start 2P');sel.innerHTML=o.map(x=>`<option>${esc(x)}</option>`).join('');sel.value=o.includes(cu)?cu:o[0]}
+function bm(text,font,gap){const v=V[font.slice(9)]||{},sx=v.sx||1,sy=v.sy||1,s=new Set;let cx=0;
+ for(const ch of text){const g=MCG[ch];if(!g)continue;for(const[i,j]of g.c){const X=cx+i+(v.i?Math.floor((7-j)/2):0);for(let p=0;p<sx;p++)for(let q=0;q<sy;q++){s.add((X*sx+p)+','+(j*sy+q));if(v.b)s.add((X*sx+p+sx)+','+(j*sy+q))}}cx+=g.w+gap+(v.b?1:0)}
+ let cells=[...s].map(k=>k.split(',').map(Number));if(!cells.length)return{cells:[],w:1,h:1};
+ const mx=Math.min(...cells.map(c=>c[0])),my=Math.min(...cells.map(c=>c[1]));cells=cells.map(([a,b])=>[a-mx,b-my]);return{cells,w:Math.max(...cells.map(c=>c[0]))+1,h:Math.max(...cells.map(c=>c[1]))+1}}
+function grid(text,font,gap,caps){text=caps?text.toUpperCase():text;if(font.startsWith('Minecraft')&&MCG)return bm(text||' ',font,gap);
+ const fam=font.startsWith('Font: ')?'MC_'+font.slice(6):font,px=16,c=document.createElement('canvas'),x=c.getContext('2d',{willReadFrequently:true});x.font=`${px}px "${fam}"`;
+ const w=Math.max(1,Math.ceil(x.measureText(text||' ').width)+2),h=Math.ceil(px*1.5);c.width=w;c.height=h;x.font=`${px}px "${fam}"`;x.textBaseline='top';x.fillText(text,1,0);
+ const d=x.getImageData(0,0,w,h).data,cells=[];let a=1e9,b=-1,l=1e9,r=-1;for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(d[(j*w+i)*4+3]>110){cells.push([i,j]);a=Math.min(a,j);b=Math.max(b,j);l=Math.min(l,i);r=Math.max(r,i)}
+ return{cells:cells.map(([i,j])=>[i-l,j-a]),w:Math.max(1,r-l+1),h:Math.max(1,b-a+1)}}
+const hexa=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const mix=(a,b,t)=>{a=hexa(a);b=hexa(b);return `rgb(${a.map((v,i)=>Math.round(v+(b[i]-v)*t)).join(',')})`};
+const shade=(h,f)=>`rgb(${hexa(h).map(v=>Math.round(v*f)).join(',')})`;
+const hs=(i,j)=>{let n=Math.imul(i*374761393+j*668265263|0,1274126177);n=Math.imul(n^(n>>>13),1274126177);return((n^(n>>>16))>>>0)/4294967295};
+const band=t=>t<.36?mix('#f0eeee','#b9b4ae',t/.36):t<.72?mix('#d9cfc4','#c4b8ab',(t-.36)/.36):mix('#4a4444','#352f2f',(t-.72)/.28);
+function layer(ctx,g,ox,oy,cs,o){if(!g.cells.length)return;const rad=o.an*Math.PI/180,dx=Math.cos(rad),dy=Math.sin(rad),n=o.dp,e=.7;
+ const rect=(x,y,p,col)=>{ctx.fillStyle=col;ctx.fillRect(x-p,y-p,cs+2*p+e,cs+2*p+e)},off=d=>[dx*d*cs/6,dy*d*cs/6];
+ for(let d=0;d<=n;d+=Math.max(1,n/12|0)){const[a,b]=off(d);for(const[i,j]of g.cells)rect(ox+i*cs+a,oy+j*cs+b,o.ow,o.c4)}
+ {const[a,b]=off(n);for(const[i,j]of g.cells)rect(ox+i*cs+a,oy+j*cs+b,o.ow,o.c4)}
+ const sc=o.tex?o.tex.avg:o.band?'#2e2a2a':o.c3;
+ for(let d=n;d>=1;d--){const[a,b]=off(d),col=shade(sc,.45+.4*(1-d/n));for(const[i,j]of g.cells)rect(ox+i*cs+a,oy+j*cs+b,0,col)}
+ ctx.imageSmoothingEnabled=false;
+ for(const[i,j]of g.cells){if(o.tex)ctx.drawImage(o.tex,ox+i*cs,oy+j*cs,cs+e,cs+e);else rect(ox+i*cs,oy+j*cs,0,o.band?band(j/Math.max(1,g.h-1)):mix(o.top,o.bot,j/Math.max(1,g.h-1)))}
+ if(!o.tex&&!o.band){ctx.fillStyle='rgba(255,255,255,.3)';for(const[i,j]of g.cells)if(hs(i,j)*100<o.sp&&j<g.h*.7)ctx.fillRect(ox+i*cs,oy+j*cs,cs+e,cs+e)}}
+function draw(cv,o){const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;ctx.clearRect(0,0,W,H);if(!o.tr){ctx.fillStyle='#14181f';ctx.fillRect(0,0,W,H)}
+ const g1=grid(o.t1,o.font,o.gap,o.caps),g2=grid(o.t2,o.font,o.gap,o.caps),tx=o.fm==='tex'?texC(o.tn):null;
+ const base={dp:o.dp,an:o.an,ow:o.ow,sp:o.sp,c3:o.c3,c4:o.c4,tex:tx,band:o.fm==='band'};
+ const pad=40+o.dp*2,cs=Math.min((W-pad*2)/g1.w,(H-pad*2)/(g1.h*1.35)),mw=g1.w*cs,mh=g1.h*cs;
+ const ox=(W-mw)/2-o.dp*cs/12*Math.cos(o.an*Math.PI/180),oy=Math.max(14,(H-mh*1.3)/2);
+ layer(ctx,g1,ox,oy,cs,{...base,top:o.c1,bot:o.c2});
+ if(o.t2.trim()){const sc=cs*o.ss/100*(g1.h/g2.h)*.6,sw=g2.w*sc,sh=g2.h*sc;layer(ctx,g2,(W-sw)/2,oy+mh-sh*.1+o.dp*cs/6*.3,sc,{...base,dp:Math.min(o.dp,8),ow:Math.max(2,o.ow-2),top:o.d1,bot:o.d2,c3:o.d2,c4:'#0a2a5a'})}}
+const rd=()=>{const v=id=>$(id).value;return{t1:v('t1'),t2:v('t2'),font:v('font')||'Press Start 2P',caps:$('caps').checked,fm:v('fm'),tn:v('tn'),gap:+v('gap'),ss:+v('ss'),dp:+v('dp'),an:+v('an'),ow:+v('ow'),sp:+v('sp'),c1:v('c1'),c2:v('c2'),c3:v('c3'),c4:v('c4'),d1:v('d1'),d2:v('d2'),tr:$('tr').checked}};
+function render(){draw($('cv'),rd());if(!$('v-kit').classList.contains('hide'))drawIcon()}
+document.querySelectorAll('#v-logo input,#v-logo select').forEach(e=>e.oninput=()=>{$('tn').classList.toggle('hide',$('fm').value!=='tex');document.fonts.load('16px "Press Start 2P"').then(render)});
+const PRE={Void:['#ff2bff','#a000ff','#5a0fa0','#2d0a55','#38d6ff','#1a6fd0'],Diamond:['#7cf5ff','#1fb5d6','#0e6f86','#06323f','#ffffff','#9ad7e8'],Emerald:['#6dff8d','#12a64a','#0a6030','#04301a','#fff27a','#d6a800'],Gold:['#fff27a','#e0a000','#8a5a00','#3d2600','#ffffff','#e8c76a'],Redstone:['#ff5a5a','#b00000','#650000','#2d0000','#ffb0b0','#e04040'],Netherite:['#8a7d86','#3d343c','#241e24','#0d0a0d','#ff9a3c','#c0560a'],Stone:['#e8e6e6','#403a3a','#2e2a2a','#101014','#b9b3ad','#5a5450']};
+for(const k in PRE){const b=document.createElement('button');b.className='btn s';b.textContent=k;b.onclick=()=>{['c1','c2','c3','c4','d1','d2'].forEach((id,i)=>$(id).value=PRE[k][i]);$('fm').value=k==='Stone'?'band':'grad';$('tn').classList.add('hide');render()};$('pre').appendChild(b)}
+$('dl').onclick=()=>$('cv').toBlob(b=>saveFile(($('t1').value||'logo')+'-'+($('t2').value||'server')+'.png',b));
+/* ---------- server kit ---------- */
+const KT=[['motd','MOTD'],['icon','Server icon'],['rules','Rules'],['conf','Software & config']];let kt='motd';
+$('kit-tabs').innerHTML=KT.map(([k,n])=>`<button data-k="${k}">${n}</button>`).join('');$('kit-tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>kitTab(b.dataset.k));
+function kitTab(k){kt=k;KT.forEach(([x])=>$('k-'+x).classList.toggle('hide',x!==k));$('kit-tabs').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));if(k==='icon')drawIcon();if(k==='rules')drawRules();if(k==='conf'){$('cf-t').value=SV.type;$('cf-p').value=SV.players}}
+const MCC={'0':'#000000','1':'#0000aa','2':'#00aa00','3':'#00aaaa','4':'#aa0000','5':'#aa00aa','6':'#ffaa00','7':'#aaaaaa','8':'#555555','9':'#5555ff',a:'#55ff55',b:'#55ffff',c:'#ff5555',d:'#ff55ff',e:'#ffff55',f:'#ffffff'};
+let lastMo='mo1';['mo1','mo2'].forEach(i=>{$(i).onfocus=()=>lastMo=i;$(i).oninput=moDraw});
+$('mo-c').innerHTML=Object.entries(MCC).map(([k,c])=>`<button data-c="${k}" title="&${k}" style="background:${c}"></button>`).join('');
+$('mo-f').innerHTML=[['l','Bold'],['o','Italic'],['n','Underline'],['m','Strike'],['r','Reset']].map(([k,n])=>`<button class="btn s" data-c="${k}">${n}</button>`).join('');
+document.querySelectorAll('#mo-c button,#mo-f button').forEach(b=>b.onclick=()=>{const el=$(lastMo),p=el.selectionStart??el.value.length;el.value=el.value.slice(0,p)+'&'+b.dataset.c+el.value.slice(p);el.focus();el.setSelectionRange(p+2,p+2);moDraw()});
+function moParse(s){const p=s.split(/&([0-9a-fk-or])/i);let col='#ffffff',b=0,i=0,u=0,m=0,h='';for(let k=0;k<p.length;k++){if(k%2===0){if(p[k])h+=`<span style="color:${col};${b?'font-weight:700;':''}${i?'font-style:italic;':''}text-decoration:${[u?'underline':'',m?'line-through':''].join(' ').trim()||'none'}">${esc(p[k])}</span>`}else{const c=p[k].toLowerCase();if(MCC[c])col=MCC[c];else if(c==='l')b=1;else if(c==='o')i=1;else if(c==='n')u=1;else if(c==='m')m=1;else if(c==='r'){col='#ffffff';b=i=u=m=0}}}return h}
+function moDraw(){const a=$('mo1').value,b=$('mo2').value;$('mo-pv').innerHTML=moParse(a)+'\n'+moParse(b);$('mo-o').value='motd='+[a,b].map(t=>t.replace(/&([0-9a-fk-or])/gi,'\\u00A7$1')).join('\\n')}
+moDraw();
+function drawIcon(){const c=$('ic'),x=c.getContext('2d');$('ic-t').classList.toggle('hide',$('ic-s').value!=='tex');x.clearRect(0,0,64,64);if(!$('ic-tr').checked){x.fillStyle=$('ic-b').value;x.fillRect(0,0,64,64)}
+ if($('ic-s').value==='tex'){const t=texC($('ic-t').value);x.imageSmoothingEnabled=false;if(t)x.drawImage(t,0,0,64,64)}else{const s=$('cv'),k=Math.min(60/s.width,60/s.height);x.imageSmoothingEnabled=true;x.drawImage(s,(64-s.width*k)/2,(64-s.height*k)/2,s.width*k,s.height*k)}}
+['ic-s','ic-t','ic-b','ic-tr'].forEach(i=>$(i).oninput=drawIcon);$('ic-d').onclick=()=>$('ic').toBlob(b=>saveFile('server-icon.png',b));
+const RUL=[['respect','Be respectful to everyone. No harassment, hate speech or personal attacks.',1],['cheat','No cheating, x-ray or hacked clients.',1],['grief','No griefing or stealing. Claim and protect your builds.',1],['spam','No spam or unapproved advertising.',1],['exploit','Don’t abuse bugs or duplication glitches. Report them to staff.',1],['chat','Keep chat appropriate and in the server’s main language.',0],['pvp','PvP is only allowed with consent, except in marked PvP zones.',0],['limits','Keep farms and redstone lag-friendly. Staff may remove laggy builds.',0],['alt','One account per player unless staff approve alts.',0],['staff','Follow staff instructions. Appeal decisions politely.',1]];let ruCustom=[];
+function drawRules(){const sel=new Set([...document.querySelectorAll('#ru-l input[data-r]:checked')].map(i=>i.dataset.r));if(!$('ru-l').children.length){$('ru-l').innerHTML=RUL.map(([k,t,d])=>`<label style="display:flex;gap:8px;margin:6px 0;color:var(--tx)"><input type="checkbox" data-r="${k}"${d?' checked':''}>${t}</label>`).join('')+'<label>Add your own rule</label><div class="row"><input id="ru-c" type="text" maxlength="140"><button class="btn s g" id="ru-a" style="flex:none">Add</button></div>';$('ru-l').querySelectorAll('input[data-r]').forEach(i=>i.onchange=drawRules);$('ru-a').onclick=()=>{const v=$('ru-c').value.trim();if(v){ruCustom.push(v);$('ru-c').value='';drawRules()}}}
+ const l=[...RUL.filter(r=>$('ru-l').querySelector(`[data-r="${r[0]}"]`)?.checked).map(r=>r[1]),...ruCustom];$('ru-o').value=`${SV.name||'Server'} Rules\n\n`+l.map((t,i)=>`${i+1}. ${t}`).join('\n')+'\n\nBreaking rules may lead to a warning, mute, kick or ban at staff discretion.'}
+const PL={Survival:['EssentialsX: homes, warps, kits','LuckPerms: ranks and permissions','CoreProtect: rollback griefing','GriefPrevention: player land claims','Chunky: pregenerate the world'],Lifesteal:['A lifesteal plugin (choose one that is actively maintained)','LuckPerms: ranks and permissions','CoreProtect: rollback griefing','An anti-cheat such as Grim','EssentialsX: core commands'],Anarchy:['CoreProtect: log everything','Chunky: pregenerate the world','An anti-lag plugin and entity limits','An anti-cheat such as Grim'],Economy:['Vault: economy and permission hooks','EssentialsX Economy','A shop plugin such as ChestShop','LuckPerms: ranks and permissions'],Roleplay:['LuckPerms: ranks and permissions','Towny or similar for nations','Citizens: NPCs','DiscordSRV: link chat to Discord'],Creative:['PlotSquared: build plots','WorldEdit: building tools','LuckPerms: ranks and permissions'],PvP:['A kit and arena plugin','An anti-cheat such as Grim','LuckPerms: ranks and permissions','EssentialsX: core commands'],Modded:['Pick the loader your modpack needs (Fabric, NeoForge or Forge)','Back up before every mod update','Add server-side performance mods where your loader supports them']};
+$('cf-g').onclick=()=>{const t=$('cf-t').value,p=+$('cf-p').value||20,mod=t==='Modded',b=$('cf-b').checked,vd=p<=20?10:p<=60?8:6,sd=p<=60?6:5,hard=['Lifesteal','Anarchy','PvP'].includes(t);
+ const props=`max-players=${p}\nview-distance=${vd}\nsimulation-distance=${sd}\ndifficulty=${hard?'hard':'normal'}\npvp=${t==='Creative'?'false':'true'}\nwhite-list=${p<=20?'true':'false'}\nonline-mode=true\nenable-command-block=false\nspawn-protection=${t==='Anarchy'?0:16}`;
+ $('cf-o').innerHTML=`<div class="grid" style="grid-template-columns:1fr 1fr"><div class="pnl"><h3>Server software</h3><p class="note" style="margin-top:8px">${mod?'Use Fabric, NeoForge or Forge, matching the loader your modpack needs.':'Paper is the best default for plugin servers. Purpur is a good alternative with more options.'}${b?' Add Geyser and Floodgate so Bedrock players can join.':''} Use the Java version your Minecraft version requires (Java 21 for 1.20.5 and newer).</p></div><div class="pnl"><h3>Recommended extras</h3><ul style="padding-left:18px;color:var(--mu)">${(PL[t]||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul><p class="note">Check each plugin supports your Minecraft version.</p></div></div><div class="pnl" style="margin-top:16px"><div class="ph"><h3>server.properties suggestions</h3><button class="btn s" data-copy="cf-pr">Copy</button></div><textarea id="cf-pr" readonly style="min-height:210px;font-family:ui-monospace,monospace">${props}</textarea></div>`};
+/* ---------- AI assistant ---------- */
+function localHelp(q){const t=q.toLowerCase(),has=(...w)=>w.some(x=>t.includes(x)),pick=a=>a[Math.floor(Math.random()*a.length)];
+ if(has('welcome','announce','message','motd'))return'Welcome to [SERVER NAME]!\n\nWe’re a friendly [Survival/Lifesteal/etc.] community. Read the rules, grab your starter kit at spawn and say hi in chat.\n\nIP: [YOUR IP]\nSeason: [NUMBER] · Version: [VERSION]\n\nNeed help? Ask a moderator any time. Have fun and build something great!';
+ if(has('rule'))return'Starter rules:\n1. Be respectful. No harassment or hate.\n2. No cheating, x-ray or unfair exploits.\n3. No griefing or stealing. Claim your builds.\n4. No spam or unwanted advertising.\n5. Keep chat family-friendly.\n6. Staff decisions are final. Appeal politely.\n7. Report bugs, never abuse them.';
+ if(has('event'))return'Event ideas:\n- Build battle with a weekly theme\n- Manhunt or hide and seek\n- Boss fight raid on a custom arena\n- Parkour or boat race\n- Treasure hunt with coordinates clues\n- PvP tournament with brackets\n- Market day where players run shops\n- Community build of a new spawn town';
+ if(has('plugin','mod','anticheat'))return'Handy plugins for Paper or Spigot servers:\n- EssentialsX: homes, warps, kits, basic commands\n- LuckPerms: permissions and staff ranks\n- CoreProtect: rollback griefing\n- WorldGuard and WorldEdit: protect and edit areas\n- GriefPrevention: let players claim land\n- Vault: economy and permission hooks\n- DiscordSRV: link chat to Discord\nCheck each plugin supports your Minecraft version.';
+ if(has('lore','story','roleplay','faction'))return'Lore starter:\nLong ago the world was split by a falling star. Three factions rose from the crater: the [Name A], who hoard its light; the [Name B], who study it; and the [Name C], who want it gone. Players choose a faction at spawn, earn standing through quests and decide who controls the star at season’s end.\n\nTip: give every faction a color, a base, a rival and one secret.';
+ if(has('name','idea'))return'Server name ideas:\n'+Array.from({length:6},()=>pick(['Void','Ember','Crystal','Nova','Shadow','Pixel','Frost','Iron','Moon','Storm'])+' '+pick(['Realm','SMP','Lands','Haven','Network','Peaks','Legacy','Odyssey'])).join('\n');
+ if(has('staff','recruit','application','moderator','mod '))return'Staff application questions:\n1. How old are you and what timezone are you in?\n2. How many hours a week can you be online?\n3. Why do you want to join the team?\n4. A player is breaking rules while a friend of yours. What do you do?\n5. Describe a time you resolved a conflict.\n6. Past staff experience?\nUse a trial period before giving full permissions.';
+ if(has('lag','tps','performance','ram','host'))return'Reduce lag:\n- Run Paper or Purpur instead of vanilla\n- Lower view and simulation distance (8-10 / 6)\n- Pregenerate the world with the Chunky plugin\n- Limit mob and item entities per chunk\n- Restart daily and keep plugins few and updated\n- Check the Hosting tab for plans by player count';
+ if(has('promo','advert','trailer','ad '))return'Advert template:\n[SERVER NAME] | [TYPE] SMP\nWe offer: [3 unique features]\nActive staff, weekly events and a friendly community.\nIP: [YOUR IP]\n\nTip: show 2-3 great screenshots, state your version, and post in the Promos tab with a badge like NEW!';
+ return'I can help with: welcome messages, rules, event ideas, plugin picks, lore, server names, staff application questions, lag fixes and adverts. Try asking, for example, “give me event ideas” or “write rules for a lifesteal server”.'}
+
+let chats=ls.get('ssChats',[]),chat=null,busy=false,ctl=null,SM;
+async function getSM(){if(SM!==undefined)return SM;try{SM=await claude.use('sample')}catch(e){SM=null}return SM}
+const SYS=()=>`You are the assistant inside Server Studio, a toolkit for people who run Minecraft servers and SMPs. Help with server setup (Paper, Purpur, Fabric, NeoForge, Forge, Geyser for Bedrock), plugins and mods, performance, backups, moderation and rules, staff hiring, economy design, events, lore, marketing and community growth. Be concrete and practical. Prefer short, structured answers and give copy-ready text (rules, announcements, application forms, commands, config lines) when useful. Say when something depends on the Minecraft version or may have changed. Keep advice within Mojang’s EULA and commercial guidelines (for example, no pay-to-win). The app’s tools are Logo Studio, Textures & Font, Server Kit (MOTD, icon, rules, config), Promotions, Recruiting, Hosting, Reviews and Profile; point to them when relevant. If asked what you are, say you are the Server Studio assistant.${SV.name||SV.ver?`\n\nThe user’s server: ${[SV.name,SV.type,SV.ver&&'version '+SV.ver,SV.players+' expected players'].filter(Boolean).join(', ')}.`:''}`;
+const AIC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 2.5 3.5 7v10L12 21.5 20.5 17V7z"/></svg>';
+const close=m=>m==='u'?'</ul>':m==='o'?'</ol>':'';
+function blocks(p){let o='',mode='';for(const ln of p.split('\n')){let m;if(m=ln.match(/^\s*[-*] (.*)/)){if(mode!=='u'){o+=close(mode)+'<ul>';mode='u'}o+='<li>'+m[1]+'</li>'}else if(m=ln.match(/^\s*\d+\. (.*)/)){if(mode!=='o'){o+=close(mode)+'<ol>';mode='o'}o+='<li>'+m[1]+'</li>'}else{o+=close(mode);mode='';if(m=ln.match(/^#{1,3} (.*)/))o+='<h4>'+m[1]+'</h4>';else if(ln.trim())o+='<p>'+ln+'</p>'}}return o+close(mode)}
+function md(t){let h=esc(t).replace(/```\w*\n?([\s\S]*?)```/g,(m,c)=>`<pre><code>${c}</code></pre>`).replace(/`([^`\n]+)`/g,'<code>$1</code>').replace(/\*\*([^*\n]+)\*\*/g,'<b>$1</b>');return h.split(/(<pre>[\s\S]*?<\/pre>)/).map(p=>p.startsWith('<pre>')?p:blocks(p)).join('')}
+const SUG=['Write a welcome message and rules for my server','Why is my server lagging and how do I fix it?','Give me 8 event ideas for this month','Create a staff application form for moderators','Plan the first week after launch'];
+function msgHtml(x,i){return x.r==='user'?`<div class="msg u"><div class="b">${esc(x.t)}</div></div>`:`<div class="msg"><div class="ai">${AIC}</div><div class="b">${x.t?md(x.t):'<span class="dots"></span>'}${x.t&&!(busy&&i===chat.msgs.length-1)?`<button class="btn s cp" data-m="${i}">Copy</button>`:''}</div></div>`}
+function renderMsgs(){const m=$('ch-msgs');m.innerHTML=!chat||!chat.msgs.length?`<div class="empty"><h3>How can I help with your server?</h3><p class="sub" style="margin-bottom:0">Ask anything about running and growing a Minecraft server.</p><div class="sug">${SUG.map(s=>`<button>${esc(s)}</button>`).join('')}</div></div>`:chat.msgs.map(msgHtml).join('');
+ m.querySelectorAll('.sug button').forEach(b=>b.onclick=()=>send(b.textContent));m.querySelectorAll('.cp').forEach(b=>b.onclick=()=>{try{navigator.clipboard.writeText(chat.msgs[+b.dataset.m].t)}catch(e){}b.textContent='Copied'});m.scrollTop=m.scrollHeight}
+function chatList(){$('ch-list').innerHTML=chats.map(c=>`<button data-id="${c.id}" class="${chat&&chat.id===c.id?'on':''}">${esc(c.title)}</button>`).join('');$('ch-list').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(busy)return;chat=chats.find(c=>c.id===b.dataset.id);renderChat()})}
+function renderChat(){chatList();renderMsgs()}
+function upd(){const m=$('ch-msgs'),l=m.lastElementChild,i=chat.msgs.length-1;if(l)l.outerHTML=msgHtml(chat.msgs[i],i);m.scrollTop=m.scrollHeight}
+function setBusy(){$('ch-send').textContent=busy?'Stop':'Send';$('ch-send').classList.toggle('g',!busy)}
+async function typeOut(a,t){for(let i=0;i<=t.length;i+=5){if(ctl.signal.aborted)return;a.t=t.slice(0,i);upd();await new Promise(r=>setTimeout(r,14))}a.t=t;upd()}
+async function send(t){t=t.trim();if(busy||!t)return;if(!chat){chat={id:Date.now().toString(36),title:t.slice(0,42),msgs:[]};chats.unshift(chat)}
+ chat.msgs.push({r:'user',t});const a={r:'assistant',t:''};chat.msgs.push(a);busy=true;ctl=new AbortController();$('ch-in').value='';setBusy();chatList();renderMsgs();
+ try{const sm=await getSM();if(sm){const hist=chat.msgs.slice(0,-1).slice(-20).map((m,i)=>({role:m.r,content:i===0?SYS()+'\n\n---\n\n'+m.t:m.t}));await sm(hist,{onText:u=>{a.t=u.text;upd()},signal:ctl.signal,cache:false})}else await typeOut(a,localHelp(t))}
+ catch(e){if(!ctl.signal.aborted&&!a.t){await typeOut(a,(e&&e.code==='not_granted'?'AI access wasn’t enabled for this page, so here is the built-in guide instead.\n\n':'')+localHelp(t))}}
+ if(!a.t)a.t='Stopped.';busy=false;setBusy();ls.set('ssChats',chats.slice(0,30));renderMsgs()}
+$('ch-send').onclick=()=>busy?ctl.abort():send($('ch-in').value);
+$('ch-in').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('ch-send').click()}};
+$('ch-in').oninput=()=>{const t=$('ch-in');t.style.height='auto';t.style.height=Math.min(160,t.scrollHeight)+'px'};
+$('ch-new').onclick=()=>{if(busy)return;chat=null;renderChat();$('ch-in').focus()};
+/* ---------- FAQ, updates, settings ---------- */
+const FAQ=[['Do we have a Discord?','No, not yet. We’ll announce it here when it launches.'],['Is this safe to use?','Yes.'],['Is Server Studio free?','Yes. Everything here is free to use right now.'],['Why do I have to import textures and the font?','Minecraft’s textures and font belong to Mojang, so they can’t be bundled in a third-party app. Importing your own copy lets you use the real ones, and they stay in your browser.'],['Which files can I import?','The game .jar, a resource pack .zip, single .png textures, ascii.png (the Minecraft font sheet), or a .ttf/.otf font file. You can drop several at once.'],['Where do I find the game .jar?','In your Minecraft folder under versions, in a folder named after the version. On Windows that is %appdata%\\.minecraft\\versions.'],['Can I use my logo commercially?','You made the design, but the Minecraft font and textures remain Mojang’s. Check Mojang’s brand and asset usage guidelines before selling anything.'],['How does the launch checklist work?','Tick tasks as you finish them. Each task has an Open button that jumps to the matching tool, and your progress is saved.'],['What does the AI assistant do?','It answers questions about setup, plugins, lag, rules, staff, events, lore and growth, and writes copy-ready text. It can be wrong about versions or commands, so test before you rely on it.'],['Are the hosting prices exact?','No. They’re base-plan prices per GB from comparison sites in Sept 2026. Confirm on the host’s site before buying.'],['Can I delete my posts?','Yes. Your own promotions and recruit posts show a Delete button.'],['How do reviews work?','Pick 1–5 stars and write a short review. It joins the rotating review ring.'],['Are accounts secure?','For now, accounts live in your browser only. Don’t reuse a real password.'],['Who can see my profile?','Anyone using Server Studio can see your profile, picture and socials.'],['Are you affiliated with Mojang or Microsoft?','No. Server Studio is an independent tool, not an official Minecraft product, and isn’t approved by or associated with Mojang or Microsoft.'],['Does it work on mobile?','Yes, the layout adapts to phones and tablets.'],['How do I report a bad post?','Reporting tools are coming soon.']];
+function drawFaq(){const q=$('faq-s').value.toLowerCase();$('faq').innerHTML=FAQ.filter(([a,b])=>(a+b).toLowerCase().includes(q)).map(([a,b])=>`<div class="pnl faqi"><button><span>${a}</span><span class="pl">+</span></button><div class="a">${b}</div></div>`).join('');$('faq').querySelectorAll('.faqi button').forEach(b=>b.onclick=()=>b.parentNode.classList.toggle('on'))}
+$('faq-s').oninput=drawFaq;drawFaq();
+const UPD=[['2.0','Redesigned workspace',['New: dashboard with server profile and launch checklist','New: import your own Minecraft textures and font','New: Logo Studio uses the Minecraft font and real block textures','New: Server Kit with MOTD builder, server icon, rules and config generator','New: AI Assistant as a full chat with history','New: command search (Ctrl K), light theme and accent colors']],['1.6','',['Profiles with pictures and socials','Custom staff roles','Updates tab']],['1.4','',['Promotions, Recruiting and Hosting finder']],['1.3','',['Review ring and FAQ']],['1.0','',['Login and 3D block title maker']]];
+$('upd-list').innerHTML=UPD.map(([v,t,l])=>`<div class="pnl"><h3>Version ${v}${t?' · '+t:''}</h3><ul style="margin:8px 0 0;padding-left:18px;color:var(--mu)">${l.map(x=>`<li>${x}</li>`).join('')}</ul></div>`).join('')+'<div class="pnl"><h3>Coming soon</h3><p class="note" style="margin-top:6px">3D model editor, real accounts and post reporting.</p></div>';
+const ACC=[['#2fd27a','#06150d'],['#4c8dff','#ffffff'],['#9b7bff','#ffffff'],['#ff9a3d','#1a0d00'],['#ff5c8a','#ffffff']];let SET={th:'dark',ac:0,...ls.get('ssSet',{})};
+$('s-ac').innerHTML=ACC.map((a,i)=>`<button data-i="${i}" style="background:${a[0]}"></button>`).join('');
+function applySet(){const th=SET.th==='auto'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):SET.th,a=ACC[SET.ac]||ACC[0],s=document.documentElement;s.dataset.theme=th;s.style.setProperty('--ac',a[0]);s.style.setProperty('--acf',a[1]);$('s-th').value=SET.th;$('s-ac').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('on',i===SET.ac));ls.set('ssSet',SET)}
+$('s-th').onchange=()=>{SET.th=$('s-th').value;applySet()};$('s-ac').querySelectorAll('button').forEach(b=>b.onclick=()=>{SET.ac=+b.dataset.i;applySet()});
+$('s-ck').onclick=()=>{ls.set('ssCk:'+me,{});drawDash();$('s-ck').textContent='Done'};applySet();
+/* ---------- command search ---------- */
+const CMD=[...NAVF.map(x=>[x[1],()=>go(x[0])]),['New chat',()=>{go('ai');$('ch-new').click()}],['Import Minecraft assets',()=>go('tex')]];let cs=0,cl=[];
+function cmdDraw(){const q=$('cmd-q').value.toLowerCase();cl=CMD.filter(x=>x[0].toLowerCase().includes(q));cs=Math.min(cs,Math.max(0,cl.length-1));$('cmd-l').innerHTML=cl.map((x,i)=>`<button class="${i===cs?'on':''}" data-i="${i}">${x[0]}</button>`).join('');$('cmd-l').querySelectorAll('button').forEach(b=>b.onclick=()=>cmdRun(+b.dataset.i))}
+function cmdRun(i){if(cl[i]){$('cmd').classList.add('hide');cl[i][1]()}}
+function cmdOpen(){if($('app').classList.contains('hide'))return;$('cmd').classList.remove('hide');$('cmd-q').value='';cs=0;cmdDraw();$('cmd-q').focus()}
+$('sb-open').onclick=cmdOpen;$('cmd-q').oninput=()=>{cs=0;cmdDraw()};$('cmd').onclick=e=>{if(e.target===$('cmd'))$('cmd').classList.add('hide')};
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();cmdOpen()}else if(!$('cmd').classList.contains('hide')){if(e.key==='Escape')$('cmd').classList.add('hide');else if(e.key==='ArrowDown'){cs=Math.min(cl.length-1,cs+1);cmdDraw()}else if(e.key==='ArrowUp'){cs=Math.max(0,cs-1);cmdDraw()}else if(e.key==='Enter')cmdRun(cs)}});
+/* ---------- init ---------- */
+(async()=>{const a=await idb.get('assets');if(a){TXS=a.TXS||{};ASC=a.ASC||'';FNT=a.FNT||[];for(const f of FNT)await regFont(f.name,f.buf);await buildGlyphs()}
+ refreshAssets();document.fonts.load('16px "Press Start 2P"').then(render);const s=ls.get('ssSession','');if(s&&users()[s])enter(s)})();
+</script></body></html>
